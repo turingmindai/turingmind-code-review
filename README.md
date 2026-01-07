@@ -4,14 +4,23 @@
 
 **Catch bugs before they catch you.**
 
-AI-powered code review for your uncommitted changes. Runs locally, reviews instantly.
+A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill for AI-powered code review of your uncommitted changes. Install from the marketplace, review instantly.
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://github.com/anthropics/claude-code)
+[![Claude Code Skill](https://img.shields.io/badge/Claude_Code-Skill-blueviolet)](https://docs.anthropic.com/en/docs/claude-code)
+[![Install from Marketplace](https://img.shields.io/badge/Marketplace-Install-green)](https://github.com/turingmindai/turingmind-code-review)
 
 [Quick Start](#-quick-start) • [Features](#-features) • [Examples](#-example-output) • [Contributing](#-contributing)
 
 </div>
+
+---
+
+## 📦 What is This?
+
+**TuringMind Code Review** is a **Claude Code skill** — a reusable, shareable plugin that extends Claude Code with specialized code review capabilities. 
+
+Claude Code skills are installed via the built-in plugin marketplace and add new slash commands to your Claude Code environment.
 
 ---
 
@@ -33,16 +42,36 @@ TuringMind catches what linters miss:
 
 ## 🚀 Quick Start
 
-```bash
-# Install the plugin
-/plugin marketplace add turingmind/turingmind-code-review
-/plugin install turingmind@turingmind-code-review
+### Install from Marketplace
 
-# Review your uncommitted changes
+Open Claude Code in your terminal and run:
+
+```bash
+# Step 1: Add the TuringMind marketplace
+/plugin marketplace add turingmindai/turingmind-code-review
+```
+
+```bash
+# Step 2: Install the skill
+/plugin install turingmind@turingmind-code-review
+```
+
+### Use the Commands
+
+```bash
+# Quick review — fast, pre-commit check
 /turingmind:review
+
+# Deep review — thorough analysis before PRs
+/turingmind:deep-review
 ```
 
 That's it. No config files. No setup. Just code review.
+
+### Requirements
+
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed and configured
+- Git repository with uncommitted changes
 
 ---
 

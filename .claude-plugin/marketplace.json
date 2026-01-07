@@ -3,16 +3,11 @@
   "owner": {
     "name": "TuringMind"
   },
-  "metadata": {
-    "description": "Comprehensive code review for uncommitted local changes"
-  },
   "plugins": [
     {
       "name": "turingmind",
       "source": "./plugins/turingmind",
-      "description": "Automated code review for bugs, security vulnerabilities, CLAUDE.md compliance, and architectural issues",
-      "version": "1.0.0",
-      "keywords": ["code-review", "git", "security", "bugs", "architecture", "testing"]
+      "description": "Catch bugs before they catch you. AI-powered code review for your uncommitted changes."
     }
   ]
 }
