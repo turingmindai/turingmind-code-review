@@ -53,7 +53,7 @@ Open Claude Code in your terminal and run:
 
 ```bash
 # Step 2: Install the skill
-/plugin install turingmind@turingmind-code-review
+/plugin install turingmind@turingmind
 ```
 
 ### Use the Commands
