@@ -73,7 +73,26 @@ That's it. No config files. No setup. Just code review.
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed and configured
 - Git repository with uncommitted changes
 
-### Optional: Pre-Push Hook
+### Optional: Git Hooks
+
+#### Pre-Commit Hook (Recommended)
+
+Automatically run code review on **staged changes** before every commit:
+
+```bash
+# Manual install
+cp hooks/pre-commit .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+```
+
+What it does:
+- 🔴 **Critical issues (95-100)** → Blocks the commit
+- 🟠 **Warning issues (80-94)** → Shows warning, allows commit
+- ✅ **No issues** → Commit proceeds normally
+
+To uninstall: `rm .git/hooks/pre-commit`
+
+#### Pre-Push Hook
 
 Automatically run code review before every `git push`:
 
