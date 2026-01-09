@@ -8,81 +8,139 @@ Comprehensive code review with full context analysis. Includes architecture revi
 ## Phase 1: Gather Context (3 Parallel Haiku Agents)
 
 **Agent 1A - Change Summary:**
-- Run `git status`, `git diff`, `git diff --staged`
-- If no changes, inform user and stop
-- Identify languages from file extensions
-- Return: files changed, languages detected, line counts
+```
+1. Run `git status`, `git diff`, `git diff --staged`
+2. If no changes → inform user and stop
+3. Extract:
+   - Files changed (list)
+   - Languages detected (from extensions)
+   - Line counts (additions/deletions)
+```
 
 **Agent 1B - Project Context:**
-- Find and read CLAUDE.md files (root + directories containing modified files)
-- Read dependency files (package.json, requirements.txt, go.mod, Cargo.toml)
-- Identify project type and framework
+```
+1. Find CLAUDE.md (root + directories with changes)
+2. Read dependency files:
+   - package.json / requirements.txt / go.mod / Cargo.toml
+3. Identify project type and framework
+```
 
 **Agent 1C - Related Files:**
-- For each modified file, find:
-  - Files that import/require the modified file
-  - Files that the modified file imports
-  - Corresponding test files (e.g., `foo.ts` → `foo.test.ts`, `foo_test.go`)
-- Use grep/glob to find these relationships
+```
+For each modified file, find:
+- Files that import the modified file
+- Files that the modified file imports
+- Test files (foo.ts → foo.test.ts)
+```
 
-## Phase 2: Deep Analysis (6 Parallel Sonnet Agents)
+## Phase 2: Load Agents (Progressive)
 
-Each agent reads full file context and related files when needed. Return structured issues:
+Only load agents relevant to detected context:
 
-**Agent 2A - Compliance:**
-Use instructions from `@agents/compliance.md`
+| Condition | Load Agent |
+|-----------|------------|
+| Always | `@agents/bugs.md` |
+| Always | `@agents/security.md` |
+| Always (deep) | `@agents/architecture.md` |
+| CLAUDE.md exists | `@agents/compliance.md` |
+| `.ts/.tsx/.js/.jsx` files | `@agents/language-typescript.md` |
+| `.py` files | `@agents/language-python.md` |
 
-**Agent 2B - Bugs & Logic:**
-Use instructions from `@agents/bugs.md`
+See `@agents/index.md` for full routing logic.
 
-**Agent 2C - Security:**
-Use instructions from `@agents/security.md`
+## Phase 3: Deep Analysis (Parallel Sonnet Agents)
 
-**Agent 2D - Language-Specific:**
-Based on languages detected in Phase 1:
-- TypeScript/JavaScript: Use `@agents/language-typescript.md`
-- Python: Use `@agents/language-python.md`
-- Other languages: Apply general best practices
+Launch loaded agents in parallel. Each agent:
+1. Reads full file context + related files from Phase 1C
+2. Analyzes only the diff (not pre-existing code)
+3. Returns structured issues with **diff-style fixes**
 
-**Agent 2E - Architecture:**
-Use instructions from `@agents/architecture.md`
-Use related file context from Phase 1C
+**Core Agents (always):**
+- `@agents/bugs.md` - Logic errors, null access, race conditions
+- `@agents/security.md` - OWASP Top 10, injection, XSS, secrets
+- `@agents/architecture.md` - Patterns, coupling, dependencies
 
-**Agent 2F - Tests & Documentation:**
-- Do corresponding test files exist for modified code?
-- If tests exist, do they need updating for this change?
-- Are new public APIs/functions missing tests?
-- Are there inline comments explaining non-obvious logic?
-- If README or docs exist, do they need updates?
+**Conditional Agents:**
+- `@agents/compliance.md` - If CLAUDE.md exists
+- `@agents/language-typescript.md` - If TS/JS files
+- `@agents/language-python.md` - If Python files
 
-## Phase 3: Impact Analysis (Sonnet Agent)
+**Additional Deep Analysis:**
+- **Tests & Documentation Agent:**
+  - Do test files exist for modified code?
+  - Do tests need updating for this change?
+  - Are new public APIs missing tests?
+  - Do README/docs need updates?
+
+## Phase 4: Impact Analysis (Sonnet Agent)
 
 Using Phase 1C results, analyze:
-- What other parts of the codebase could be affected?
+- What other parts of codebase could be affected?
 - Are there breaking changes to public APIs?
-- Could this change affect performance at scale?
+- Could this affect performance at scale?
 - Are there database/schema implications?
-- What's the blast radius if this change has a bug?
+- What's the blast radius if this has a bug?
 
-## Phase 4: Confidence Scoring (Parallel Haiku Agents)
+## Phase 5: Score & Filter (Haiku Agents)
 
-For each issue from Phase 2 and 3, score confidence 0-100 using criteria from `@templates/false-positive-rules.md`
+For each issue, score confidence 0-100:
 
-## Phase 5: Filter & Present
+| Factor | Points |
+|--------|--------|
+| In the diff (new code) | +20 |
+| Would cause failure | +30 |
+| In CLAUDE.md rules | +20 |
+| Senior engineer would flag | +20 |
+| Has ignore comment | -50 |
 
-- Filter issues with score < 70
-- Apply false positive rules from `@templates/false-positive-rules.md`
-- Format output using `@templates/output-format.md`
-- Use `review_type: "Deep Code"` in the template
-- Include all sections: Critical, High, Medium, Architectural Notes, Impact Analysis
+Apply filters from `@templates/false-positive-rules.md`:
+- Filter issues with score < 70 (lower threshold for deep review)
+- Track filtered count by reason
 
-### Notes
+## Phase 6: Present Results
 
-- Do not attempt to build or typecheck the app
-- For each issue, include:
-  - File path and line number
-  - Brief description of the problem
-  - Why it matters
-  - Suggested fix (with code snippet if helpful)
-- Include architectural observations even if not "issues"
-- If no issues found, confirm the code looks good for commit
+Format output using `@templates/output-format.md`:
+
+```
+## Deep Code Review
+
+**Summary:** Reviewed X files, Y lines changed
+
+| Found | Reported | Filtered |
+|-------|----------|----------|
+| total | ≥70 score | <70 score |
+
+### Critical (95-100) 🔴
+[Issues with diff-style fixes]
+
+### Warning (80-94) 🟠  
+[Issues with diff-style fixes]
+
+### Medium (70-79) 🟡
+[Issues with diff-style fixes]
+
+### Filtered Issues 🔇
+[Count by reason, expandable details]
+
+### Architectural Notes 📐
+- Pattern consistency: ✅/⚠️/❌
+- Test coverage: ✅/⚠️/❌
+- Documentation: ✅/⚠️/❌
+- Dependencies: ✅/⚠️/❌
+
+### Impact Analysis 💥
+- Affected files: [list]
+- Blast radius: [scope]
+- Breaking changes: [yes/no]
+```
+
+## Differences from Quick Review
+
+| Aspect | Quick Review | Deep Review |
+|--------|--------------|-------------|
+| Threshold | ≥80 | ≥70 |
+| Architecture | ❌ | ✅ |
+| Impact Analysis | ❌ | ✅ |
+| Test Coverage | ❌ | ✅ |
+| Related Files | ❌ | ✅ |
+| Medium Priority | ❌ | ✅ |
