@@ -37,11 +37,11 @@ while read local_ref local_sha remote_ref remote_sha; do
         range="$remote_sha...$local_sha"
     fi
 
-    # Get changed files (code files only)
-    changed_files=$(git diff --name-only "$range" 2>/dev/null | grep -E '\.(ts|tsx|js|jsx|py|go|rs|java|rb|php|swift|kt|c|cpp|h|hpp|cs)$' || true)
+    # Get all changed files
+    changed_files=$(git diff --name-only "$range" 2>/dev/null || true)
 
     if [ -z "$changed_files" ]; then
-        echo -e "${GREEN}✅ No code files to review${NC}"
+        echo -e "${GREEN}✅ No files to review${NC}"
         exit 0
     fi
 
