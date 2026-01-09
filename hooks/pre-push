@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # TuringMind Code Review - Pre-Push Hook
+# Version: 1.0.0
 # Runs /turingmind-code-review:review on changes before pushing to remote
 # Blocks push if Critical or High severity issues are found
 
