@@ -60,10 +60,10 @@ Open Claude Code in your terminal and run:
 
 ```bash
 # Quick review — fast, pre-commit check
-/turingmind:review
+/turingmind-code-review:review
 
 # Deep review — thorough analysis before PRs
-/turingmind:deep-review
+/turingmind-code-review:deep-review
 ```
 
 That's it. No config files. No setup. Just code review.
@@ -73,6 +73,22 @@ That's it. No config files. No setup. Just code review.
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed and configured
 - Git repository with uncommitted changes
 
+### Optional: Pre-Push Hook
+
+Automatically run code review before every `git push`:
+
+```bash
+# One-liner install (run in your project)
+curl -sSL https://raw.githubusercontent.com/turingmindai/turingmind-code-review/main/scripts/install-hooks.sh | bash
+```
+
+What it does:
+- 🔴 **Critical issues (95-100)** → Blocks the push
+- 🟠 **Warning issues (80-94)** → Shows warning, allows push
+- ✅ **No issues** → Push proceeds normally
+
+To uninstall: `rm .git/hooks/pre-push`
+
 ---
 
 ## ✨ Features
@@ -81,7 +97,7 @@ That's it. No config files. No setup. Just code review.
 
 | | Quick Review | Deep Review |
 |---|---|---|
-| **Command** | `/turingmind:review` | `/turingmind:deep-review` |
+| **Command** | `/turingmind-code-review:review` | `/turingmind-code-review:deep-review` |
 | **Speed** | ⚡ Fast | 🔍 Thorough |
 | **Best for** | Pre-commit checks | Before PRs |
 | **Agents** | 4 Sonnet | 6 Sonnet + 3 Haiku |
