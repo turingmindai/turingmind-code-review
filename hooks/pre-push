@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # TuringMind Code Review - Pre-Push Hook
-# Version: 1.0.0
+# Version: 1.1.0
 # Runs /turingmind-code-review:review on changes before pushing to remote
 # Blocks push if Critical or High severity issues are found
 
@@ -83,11 +83,8 @@ while read local_ref local_sha remote_ref remote_sha; do
             # exit 1
         else
             echo -e "${GREEN}✅ Code review passed${NC}"
-            # Show any advisory notes
-            if grep -qE 'Summary:|Reviewed' "$review_output"; then
-                echo ""
-                head -10 "$review_output"
-            fi
+            echo ""
+            cat "$review_output"
         fi
     else
         echo -e "${YELLOW}⚠️  Code review failed to run. Allowing push.${NC}"
