@@ -5,57 +5,99 @@ description: Quick code review for uncommitted local changes
 
 Quick code review for uncommitted changes. Fast, focused on critical issues.
 
-## Step 1: Gather Changes (Haiku Agent)
+## Step 1: Gather Context (Haiku Agent)
 
-- Run `git status` to see what files have changes
-- Run `git diff` for unstaged and `git diff --staged` for staged
-- If no changes, inform user and stop
-- Identify languages from file extensions
-- Return: files changed, languages detected, line counts
+Detect what needs to be reviewed:
 
-## Step 2: Find Project Guidelines (Haiku Agent)
+```
+1. Run `git status` and `git diff` / `git diff --staged`
+2. If no changes → inform user and stop
+3. Extract:
+   - Files changed (list)
+   - Languages detected (from extensions)
+   - Line counts (additions/deletions)
+   - Has CLAUDE.md? (root or in changed directories)
+```
 
-- Find root CLAUDE.md
-- Find CLAUDE.md files in directories containing modified files
-- Extract actionable review rules
+## Step 2: Load Agents (Progressive)
 
-## Step 3: Review (4 Parallel Sonnet Agents)
+Only load agents relevant to detected context:
 
-Launch agents based on detected languages. Each agent reads full file context and returns structured issues:
+| Condition | Load Agent |
+|-----------|------------|
+| Always | `@agents/bugs.md` |
+| Always | `@agents/security.md` |
+| CLAUDE.md exists | `@agents/compliance.md` |
+| `.ts/.tsx/.js/.jsx` files | `@agents/language-typescript.md` |
+| `.py` files | `@agents/language-python.md` |
 
-**Agent 1 - Compliance:**
-Use instructions from `@agents/compliance.md`
+See `@agents/index.md` for full routing logic.
 
-**Agent 2 - Bugs & Logic:**
-Use instructions from `@agents/bugs.md`
+## Step 3: Run Review (Parallel Sonnet Agents)
 
-**Agent 3 - Security:**
-Use instructions from `@agents/security.md`
+Launch loaded agents in parallel. Each agent:
+1. Reads full file context for changed files
+2. Analyzes only the diff (not pre-existing code)
+3. Returns structured issues with **diff-style fixes**
 
-**Agent 4 - Language-Specific:**
-Based on languages detected in Step 1:
-- TypeScript/JavaScript: Use `@agents/language-typescript.md`
-- Python: Use `@agents/language-python.md`
-- Other languages: Apply general best practices
+Output format per agent (see `@agents/bugs.md` for example):
+```markdown
+### 🐛 {{issue_title}}
+**Location:** `{{file}}:{{line}}`
+**Confidence:** {{score}}/100
 
-## Step 4: Confidence Scoring (Parallel Haiku Agents)
+**Problem:** {{reason}}
 
-For each issue from Step 3, score confidence 0-100 using criteria from `@templates/false-positive-rules.md`
+**Suggested Fix:**
+```diff
+- {{old_code}}
++ {{new_code}}
+```
+```
 
-## Step 5: Filter & Present
+## Step 4: Score & Filter (Haiku Agents)
 
+For each issue, score confidence 0-100:
+
+| Factor | Points |
+|--------|--------|
+| In the diff (new code) | +20 |
+| Would cause failure | +30 |
+| In CLAUDE.md rules | +20 |
+| Senior engineer would flag | +20 |
+| Has ignore comment | -50 |
+
+Apply filters from `@templates/false-positive-rules.md`:
 - Filter issues with score < 80
-- Apply false positive rules from `@templates/false-positive-rules.md`
-- Format output using `@templates/output-format.md`
-- Use `review_type: "Code"` in the template
-- Only include Critical (95-100) and Warning (80-94) sections
+- Track filtered count by reason
 
-### Notes
+## Step 5: Present Results
 
-- Do not attempt to build or typecheck the app
-- For each issue, include:
-  - File path and line number
-  - Brief description of the problem
-  - Why it matters
-  - Suggested fix (with code snippet if helpful)
-- If no issues found, confirm the code looks good for commit
+Format output using `@templates/output-format.md`:
+
+```
+## Code Review
+
+**Summary:** Reviewed X files, Y lines changed
+
+| Found | Reported | Filtered |
+|-------|----------|----------|
+| total | ≥80 score | <80 score |
+
+### Critical (95-100) 🔴
+[Issues with diff-style fixes]
+
+### Warning (80-94) 🟠  
+[Issues with diff-style fixes]
+
+### Filtered Issues 🔇
+[Count by reason, expandable details]
+```
+
+## Output Rules
+
+- **Always** include filtered issues summary (builds trust)
+- **Always** use diff-style fixes (actionable)
+- **Never** report pre-existing issues (not in diff)
+- **Never** report linter territory (ESLint will catch)
+- If no issues found, confirm code looks good for commit
